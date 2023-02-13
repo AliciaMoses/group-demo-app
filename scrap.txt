@@ -1,0 +1,31 @@
+app.get('/posts', async (req, res) =>{
+  if (!req.session.user){
+    return res.redirect('/login');
+  }
+  const posts = await Post.find().populate('author').populate('comments');
+  res.send(`
+   <html>
+    <head>
+      <title>Posts</title>
+    </head>
+    <body>
+      <h1>Posts</h1>
+      ${posts.map(post =>`
+        <h2>${post.title}</h2>
+        <p>${post.content}</p>
+        ${post.photo ? `<img src="http://localhost:3000/uploads/${post.photo}" alt="Post photo">`: '' }
+				<h3>Comments</h3>
+				${post.comments.map(comment => `
+					<p>${comment.content}</p>
+				`).join('')}
+				<form action="/create-comment" method="post">
+					<textarea name="content"></textarea>
+					<input type="hidden" name="postId" value="${post._id}">
+					<button type="submit">comment</button>
+				</form>
+      `).join('')}
+      <button onClick="window.location.href='/logout'">Logout</button>
+    </body>
+   </html>
+  `);
+});
